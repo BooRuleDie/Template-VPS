@@ -275,7 +275,7 @@ sudo ufw allow 22/tcp
 for ip in $(curl -s https://www.cloudflare.com/ips-v4); do sudo ufw allow from $ip to any port 80,443 proto tcp; done # IPv4
 for ip in $(curl -s https://www.cloudflare.com/ips-v6); do sudo ufw allow from $ip to any port 80,443 proto tcp; done # IPv6
 
-# Enable UFS
+# Enable UFW
 sudo ufw enable
 
 # Check Status
@@ -315,4 +315,58 @@ To                         Action      From
 80,443/tcp                 ALLOW IN    2405:8100::/32            
 80,443/tcp                 ALLOW IN    2a06:98c0::/29            
 80,443/tcp                 ALLOW IN    2c0f:f248::/32
+```
+
+Cloudflare updates these CIDR ranges several times a year. Instead of manually checking and updating them, you can automate the process by creating a cron job to update the rules regularly:
+
+```bash
+# Create the script in /usr/local/bin (a common system-wide location for custom executables)
+# This path is chosen because /usr/local/bin is intended for user-supplied scripts and binaries that are not managed by the system's package manager, making it an ideal place for utilities like this that should be accessible to all users and available to cron without issues.
+sudo nano /usr/local/bin/update-cloudflare-ufw.sh
+
+#### File Content Start ####
+#!/bin/bash
+set -e
+
+add_rule_if_missing() {
+  local ip=$1
+  local port="80,443"
+  local proto="tcp"
+  local comment="Cloudflare"
+
+  # Check if the exact rule already exists
+  if ! sudo ufw status verbose | grep -qP "ALLOW IN.*From\s+$ip.*Ports\s+$port.*Proto\s+$proto"; then
+    sudo ufw allow from "$ip" to any port $port proto $proto comment "$comment"
+  fi
+}
+
+echo "Syncing Cloudflare IP rules to UFW..."
+
+# IPv4
+for ip in $(curl -s https://www.cloudflare.com/ips-v4); do
+  add_rule_if_missing "$ip"
+done
+
+# IPv6
+for ip in $(curl -s https://www.cloudflare.com/ips-v6); do
+  add_rule_if_missing "$ip"
+done
+
+echo "Done syncing Cloudflare IP rules at $(date)"
+#### File Content End ####
+
+# Make it executable
+sudo chmod +x /usr/local/bin/update-cloudflare-ufw.sh
+
+# Run it once manually
+sudo /usr/local/bin/update-cloudflare-ufw.sh
+
+# Then check
+sudo ufw status
+
+# Open crontab
+sudo crontab -e
+
+# Add the cronjob that runs daily at 3 AM
+0 3 * * * /usr/local/bin/update-cloudflare-ufw.sh >/dev/null 2>&1
 ```
