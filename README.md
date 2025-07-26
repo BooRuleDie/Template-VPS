@@ -23,6 +23,14 @@ chmod 600 ~/.ssh/authorized_keys
 sudo nano /etc/ssh/sshd_config   # Change 'PermitRootLogin yes' to 'PermitRootLogin no'
 sudo systemctl restart ssh       # Restart SSH to apply changes
 
+# Install btop for system monitoring
+sudo apt install btop -y
+
+# (Optional) Update the system's timezone
+timedatectl list-timezones | grep Istanbul # List all available timezones and filter for "Istanbul" to find the correct timezone string
+sudo timedatectl set-timezone Europe/Istanbul # Set the system timezone to Europe/Istanbul
+timedatectl # Display the current date, time, and timezone settings to verify the change
+
 # Set up Zsh and install essentials
 sudo apt install -y zsh git curl
 chsh -s $(which zsh)  # Change the user's default shell to Zsh. Logout and log back in (exit and reconnect by SSH) to use Zsh.
