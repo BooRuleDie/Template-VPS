@@ -226,6 +226,20 @@ If you are serving static files from users' home directories, be sure to adjust 
 NGINX requires at least **read** and **execute** permissions for all directories in the file path to serve files correctly.
 
 ```bash
+# Grant NGINX read and execute permissions for the directories and files:
+sudo chmod o+rx /home /home/booruledie /home/booruledie/react /home/booruledie/react/build
+sudo chmod o+r /home/booruledie/react/build/index.html
+```
+
+If you want to avoid adjusting directory permissions, you can place your files in a directory that NGINX already has access to by default, such as `/var/www/html`. Any files you put in this directory can be served by NGINX without extra permission changes:
+
+```bash
+# Example: Move your site files to NGINX's default web root
+sudo mkdir -p /var/www/html
+sudo cp -r <your_site_files>/* /var/www/html/
+```
+
+```bash
 # Test the NGINX configuration syntax
 sudo nginx -t
 
