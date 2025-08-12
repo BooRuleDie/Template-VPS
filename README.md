@@ -255,7 +255,52 @@ sudo nginx -t
 sudo nginx -s reload
 ```
 
-# Firewall 
+### Basic Authentication
+
+```bash
+# install apache2-utils (to get htpasswd tool)
+sudo apt install apache2-utils
+
+# username, it'll ask you a password; enter it twice
+sudo htpasswd -c /etc/nginx/.htpasswd <username>
+```
+
+```nginx
+server {
+    listen 80;
+    server_name admin.example.com;
+
+    location / {
+        auth_basic "Restricted Access";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+
+        proxy_pass http://localhost:3000;  # Or your backend
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Check for a custom header value
+
+```nginx
+server {
+    listen 80;
+    server_name custom-header.example.com;
+
+    location / {
+        # X-Custom-Header: ExpectedValue
+        if ($http_x_custom_header != "ExpectedValue") {
+            return 403;
+        }
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+# Firewall
 
 A properly configured firewall is essential for server security. After your web server is running, you should restrict inbound traffic to only the ports required by your applications—typically port 80 (HTTP) and port 443 (HTTPS). Port 20 is usually used for FTP data transfers and is not needed unless you specifically run an FTP server.
 
@@ -283,6 +328,7 @@ sudo ufw status verbose
 ```
 
 The final output should be looking like that:
+
 ```bash
 Status: active
 Logging: on (low)
@@ -291,29 +337,29 @@ New profiles: skip
 
 To                         Action      From
 --                         ------      ----
-22/tcp                     ALLOW IN    Anywhere                  
-80,443/tcp                 ALLOW IN    173.245.48.0/20           
-80,443/tcp                 ALLOW IN    103.21.244.0/22           
-80,443/tcp                 ALLOW IN    103.22.200.0/22           
-80,443/tcp                 ALLOW IN    103.31.4.0/22             
-80,443/tcp                 ALLOW IN    141.101.64.0/18           
-80,443/tcp                 ALLOW IN    108.162.192.0/18          
-80,443/tcp                 ALLOW IN    190.93.240.0/20           
-80,443/tcp                 ALLOW IN    188.114.96.0/20           
-80,443/tcp                 ALLOW IN    197.234.240.0/22          
-80,443/tcp                 ALLOW IN    198.41.128.0/17           
-80,443/tcp                 ALLOW IN    162.158.0.0/15            
-80,443/tcp                 ALLOW IN    104.16.0.0/13             
-80,443/tcp                 ALLOW IN    104.24.0.0/14             
-80,443/tcp                 ALLOW IN    172.64.0.0/13             
-80,443/tcp                 ALLOW IN    131.0.72.0/22             
-22/tcp (v6)                ALLOW IN    Anywhere (v6)             
-80,443/tcp                 ALLOW IN    2400:cb00::/32            
-80,443/tcp                 ALLOW IN    2606:4700::/32            
-80,443/tcp                 ALLOW IN    2803:f800::/32            
-80,443/tcp                 ALLOW IN    2405:b500::/32            
-80,443/tcp                 ALLOW IN    2405:8100::/32            
-80,443/tcp                 ALLOW IN    2a06:98c0::/29            
+22/tcp                     ALLOW IN    Anywhere
+80,443/tcp                 ALLOW IN    173.245.48.0/20
+80,443/tcp                 ALLOW IN    103.21.244.0/22
+80,443/tcp                 ALLOW IN    103.22.200.0/22
+80,443/tcp                 ALLOW IN    103.31.4.0/22
+80,443/tcp                 ALLOW IN    141.101.64.0/18
+80,443/tcp                 ALLOW IN    108.162.192.0/18
+80,443/tcp                 ALLOW IN    190.93.240.0/20
+80,443/tcp                 ALLOW IN    188.114.96.0/20
+80,443/tcp                 ALLOW IN    197.234.240.0/22
+80,443/tcp                 ALLOW IN    198.41.128.0/17
+80,443/tcp                 ALLOW IN    162.158.0.0/15
+80,443/tcp                 ALLOW IN    104.16.0.0/13
+80,443/tcp                 ALLOW IN    104.24.0.0/14
+80,443/tcp                 ALLOW IN    172.64.0.0/13
+80,443/tcp                 ALLOW IN    131.0.72.0/22
+22/tcp (v6)                ALLOW IN    Anywhere (v6)
+80,443/tcp                 ALLOW IN    2400:cb00::/32
+80,443/tcp                 ALLOW IN    2606:4700::/32
+80,443/tcp                 ALLOW IN    2803:f800::/32
+80,443/tcp                 ALLOW IN    2405:b500::/32
+80,443/tcp                 ALLOW IN    2405:8100::/32
+80,443/tcp                 ALLOW IN    2a06:98c0::/29
 80,443/tcp                 ALLOW IN    2c0f:f248::/32
 ```
 
