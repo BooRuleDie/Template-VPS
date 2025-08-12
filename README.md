@@ -551,7 +551,7 @@ Next, configure OpenWebUI to connect to LiteLLM:
     - **Name**: LiteLLM
     - **Base URL**: http://litellm:4000
       (use the Docker service name so OpenWebUI can resolve the LiteLLM container)
-    - **API Key**: paste the `LITELLM_MASTER_KEY` you generated above
+    - **API Key**: paste the **API Key** you generated above
 4. Click **Save** to register the connection.
 
 You should now see LiteLLM listed under **Connections**, ready to serve requests.
