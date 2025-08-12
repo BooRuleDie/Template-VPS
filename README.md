@@ -557,3 +557,78 @@ Next, configure OpenWebUI to connect to LiteLLM:
 You should now see LiteLLM listed under **Connections**, ready to serve requests.
 
 ![Connection Setup](./images/openwebui-connection.png)
+
+### Nginx Setup
+
+**/etc/nginx/sites-enabled/litellm.yourdomain.com**
+```nginx
+server {
+    listen 80;
+    server_name litellm.yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name litellm.yourdomain.com;
+
+    # Restrict access to authorized users only.
+    # Remove or comment out this block if you want to allow open access without requiring a custom header.
+    if ($http_x_custom_secret != "some-custom-value-here") {
+        return 403 "Access Denied";
+    }
+
+    ssl_certificate     /etc/nginx/ssl/yourdomain.com.cert;
+    ssl_certificate_key /etc/nginx/ssl/yourdomain.com.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    # redirect requests to the OpenWebUI docker container
+    location / {
+        proxy_pass http://127.0.0.1:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+**/etc/nginx/sites-enabled/openwebui.yourdomain.com**
+```nginx
+server {
+    listen 80;
+    server_name openwebui.yourdomain.com;
+
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name openwebui.yourdomain.com;
+
+    # Restrict access to authorized users only.
+    # Remove or comment out this block if you want to allow open access without requiring a custom header.
+    if ($http_x_custom_secret != "some-custom-value-here") {
+        return 403 "Access Denied";
+    }
+
+    ssl_certificate     /etc/nginx/ssl/yourdomain.com.cert;
+    ssl_certificate_key /etc/nginx/ssl/yourdomain.com.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+
+    # redirect requests to the OpenWebUI docker container
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
