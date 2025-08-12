@@ -43,6 +43,19 @@ git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-m
 git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
 nano ~/.zshrc   # Edit the plugins line: plugins=(git) → plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 source ~/.zshrc # Reload the Zsh configuration
+
+# (Optional) .envrc setup with direnv
+sudo apt install -y direnv
+
+# Hook direnv into your shell (Zsh)
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+source ~/.zshrc
+
+# For Bash users, uncomment the following:
+# echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && source ~/.bashrc
+
+# Allow direnv to load .envrc for this directory
+direnv allow
 ```
 
 # GitHub Setup
